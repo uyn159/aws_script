@@ -151,8 +151,6 @@ fi
 #     fi
 # done
 
-echo "Zabbix database schema imported successfully! 🎉"
-
 if grep -q "^listen $LISTEN_PORT;" "$CONFIG_FILE_FRONTEND"; then
     echo "Successfully updated 'listen' directive in $CONFIG_FILE_FRONTEND . ✅"
 else
@@ -160,7 +158,7 @@ else
 fi
 
 if grep -q "^server_name $SERVER_NAME;" "$CONFIG_FILE_FRONTEND"; then
-    echo "✅Successfully updated 'server_name' directive in $CONFIG_FILE_FRONTEND. ✅"
+    echo "Successfully updated 'server_name' directive in $CONFIG_FILE_FRONTEND. ✅"
 else
     echo "Error: Failed to update 'server_name' directive in $CONFIG_FILE_FRONTEND. Please check manually. ❌"
 fi
@@ -188,5 +186,3 @@ for service in "${services[@]}"; do
     exit 1
   fi
 done
-
-echo "All Zabbix services are running and enabled! 🎉"
