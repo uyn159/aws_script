@@ -148,7 +148,7 @@ else
         done
 
         if wait $IMPORT_PID; then
-            echo -e "\n ✅Zabbix schema imported successfully."
+            echo -e "\n✅ Zabbix schema imported successfully."
         else
             # If import fails, print remaining logs
             echo "❌ Import failed. Remaining logs:"
@@ -165,7 +165,7 @@ echo "🔃 Configuring Zabbix server..."
 # Check if Configuration File Exists
 echo "🔃 Configuring Zabbix frontend (Nginx)..."
 if [ ! -f "$CONFIG_FILE_FRONTEND" ]; then
-    log_and_exit "❌❌ Error: Configuration file not found at $CONFIG_FILE_FRONTEND"
+    log_and_exit "❌ Error: Configuration file not found at $CONFIG_FILE_FRONTEND"
 fi
 sed -i "/^ *# *listen/s/^ *# *//; s/listen .*/listen $LISTEN_PORT;/" "$CONFIG_FILE_FRONTEND"
 sed -i "/^ *# *server_name/s/^ *# *//; s/server_name .*/server_name $SERVER_NAME;/" "$CONFIG_FILE_FRONTEND"
@@ -178,8 +178,7 @@ if [ ! -f "$CONFIG_FILE_DATABASE" ]; then
 fi
 
 # Set the Zabbix database password
-sed -i "s/^DBPassword=.*/DBPassword=$NEW_PASSWORD/" "$CONFIG_FILE_DATABASE"
-
+sed -i "s/^DBPassword=.*/DBPassword=$NEW_PASSWORD/" "$CONFIG_FILE_DATABASE" || log_and_exit "Failed to set the database password in $CONFIG_FILE_DATABASE"
 # === Restart Services ===
 echo "🔃 Restarting services..."
 systemctl restart zabbix-server zabbix-agent nginx php8.3-fpm
@@ -192,7 +191,7 @@ echo "🔃 Verifying installation and configuration..."
 services=(zabbix-server zabbix-agent nginx php8.3-fpm)
 for service in "${services[@]}"; do
     if ! systemctl is-active --quiet "$service"; then
-        echo "❌ ❌ Error: $service is not active (running)."
+        echo "❌ Error: $service is not active (running)."
         exit 1
     else
         echo "✅ $service is active (running)."
