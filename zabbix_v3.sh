@@ -98,11 +98,13 @@ fi
 
 # === Zabbix Database Check ===
 echo "Checking for Zabbix database..."
-if ! sudo -u postgres psql -lqt | grep -qw "$ZABBIX_DB_NAME"; then
+if sudo -u postgres psql -lqt | grep -qw "$ZABBIX_DB_NAME"; then
+    echo "Zabbix database '$ZABBIX_DB_NAME' already exists."
+else
     if ! get_confirmation "Zabbix database not found. Do you want to create it now?" "n"; then
         log_and_exit "Zabbix database creation cancelled by user."
     else
-        # Check for Zabbix user
+        # Check for Zabbix user database
         if sudo -u postgres psql -c "\du" | grep -q "$ZABBIX_USER"; then
             echo "Zabbix user '$ZABBIX_USER' already exists."
         else
@@ -118,44 +120,37 @@ if ! sudo -u postgres psql -lqt | grep -qw "$ZABBIX_DB_NAME"; then
         fi
         # === PostgreSQL & Zabbix Database Configuration ===
         # Check for Zabbix database
-        if sudo -u postgres psql -lqt | grep -qw "$ZABBIX_DB_NAME"; then
-            echo "Zabbix database '$ZABBIX_DB_NAME' already exists."
-        else
-            if ! get_confirmation "Zabbix database not found. Do you want to create it now?" "n"; then
-                log_and_exit "Zabbix database creation cancelled by user."
-            else
-                echo "🔃 Creating Zabbix database..."
-                sudo -u postgres createdb -O "$ZABBIX_USER" "$ZABBIX_DB_NAME" || log_and_exit "Failed to create Zabbix database."
 
-                # === Zabbix Configuration ===
-                echo "$(date) - 🔃 Importing Zabbix schema..."
-                START_TIME=$(date +%s) # Record the start time in seconds
-                LOG_COUNT=0
-                { # Start a new process group for the schema import 
-                zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u "$ZABBIX_USER" psql "$ZABBIX_DB_NAME" 2>&1 | while read -r line; do
-                    if ((LOG_COUNT < 10)); then  # Only log the first 10 lines
-                        echo "$line"
-                        ((LOG_COUNT++))
-                    fi
-                done
-                } &
-                IMPORT_PID=$!
+        echo "🔃 Creating Zabbix database..."
+        sudo -u postgres createdb -O "$ZABBIX_USER" "$ZABBIX_DB_NAME" || log_and_exit "Failed to create Zabbix database."
 
-                # Progress indicator while the import runs
-                while ps -p $IMPORT_PID > /dev/null; do 
-                    echo -ne "\rElapsed time: $(date -u -d @$(( $(date +%s) - START_TIME )) +%H:%M:%S)"
-                    sleep 1
-                done
-
-                if wait $IMPORT_PID; then
-                    echo "\nZabbix schema imported successfully."
-                else
-                    # If import fails, print remaining logs
-                    echo "Import failed. Remaining logs:"
-                    wait $IMPORT_PID 2>&1 | tee -a "$LOG_FILE"  # Log remaining output to file
-                    log_and_exit "Failed to import Zabbix schema."
-                fi
+        # === Zabbix Configuration ===
+        echo "$(date) - 🔃 Importing Zabbix schema..."
+        START_TIME=$(date +%s) # Record the start time in seconds
+        LOG_COUNT=0
+        { # Start a new process group for the schema import 
+        zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u "$ZABBIX_USER" psql "$ZABBIX_DB_NAME" 2>&1 | while read -r line; do
+            if ((LOG_COUNT < 10)); then  # Only log the first 10 lines
+                echo "$line"
+                ((LOG_COUNT++))
             fi
+        done
+        } &
+        IMPORT_PID=$!
+
+        # Progress indicator while the import runs
+        while ps -p $IMPORT_PID > /dev/null; do 
+            echo -ne "\rElapsed time: $(date -u -d @$(( $(date +%s) - START_TIME )) +%H:%M:%S)"
+            sleep 1
+        done
+
+        if wait $IMPORT_PID; then
+            printf "\nZabbix schema imported successfully."
+        else
+            # If import fails, print remaining logs
+            echo "Import failed. Remaining logs:"
+            wait $IMPORT_PID 2>&1 | tee -a "$LOG_FILE"  # Log remaining output to file
+            log_and_exit "Failed to import Zabbix schema."
         fi
         echo "🔃 Restarting PostgreSQL..."
         sudo systemctl restart postgresql
@@ -165,7 +160,7 @@ fi
 # === Zabbix Frontend Configuration ===
 echo "🔃 Configuring Zabbix server..."
 # Check if Configuration File Exists
-echo "Configuring Zabbix frontend (Nginx)..."
+echo "🔃 Configuring Zabbix frontend (Nginx)..."
 if [ ! -f "$CONFIG_FILE_FRONTEND" ]; then
     log_and_exit "Error: Configuration file not found at $CONFIG_FILE_FRONTEND"
 fi
