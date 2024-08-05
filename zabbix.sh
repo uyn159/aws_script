@@ -79,7 +79,7 @@ for package in "${packages_to_check[@]}"; do
             # === Zabbix Installation ===
             echo "🔃 Installing Zabbix components..."
             sudo apt install -y zabbix-server-pgsql zabbix-frontend-php php8.3-pgsql zabbix-nginx-conf zabbix-sql-scripts zabbix-agent || log_and_exit "❌ Failed to install Zabbix components."
-
+            sudo rm -rf zabbix-release_6.0-6+ubuntu24.04_all.deb
         fi
     fi
 done
