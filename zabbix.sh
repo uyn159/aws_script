@@ -18,7 +18,7 @@ log_and_exit() {
 }
 
 # === Zabbix Version Selection and Validation ===
-read -rp "Enter Zabbix version (6.0, 6.4, or 7.0): " ZABBIX_VERSION
+read -p "Enter Zabbix version (6.0, 6.4, or 7.0): " ZABBIX_VERSION
 
 if ! [[ "$ZABBIX_VERSION" =~ ^(6.0|6|6.4|7.0|7)$ ]]; then
     log_and_exit "Invalid version. Please retype."
@@ -37,11 +37,11 @@ esac
 echo "✅ Selected Zabbix version: $ZABBIX_VERSION"
 
 # === Server Public IP Detection ===
-echo "🔃 Detecting server's public IP address..."
-IP_ADDRESS=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ident.me)
-echo "✅ Public IP Address is $IP_ADDRESS"
-SERVER_NAME="$IP_ADDRESS" #get IP address of server
-# read -p "Enter IP or DNS server: " SERVER_NAME
+# echo "🔃 Detecting server's public IP address..."
+# IP_ADDRESS=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ident.me)
+# echo "✅ Public IP Address is $IP_ADDRESS"
+# SERVER_NAME="$IP_ADDRESS" #get IP address of server
+read -p "Enter IP or DNS server: " SERVER_NAME
 
 
 # === Download and Install Zabbix Release Package ===
