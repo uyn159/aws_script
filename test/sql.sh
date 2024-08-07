@@ -1,26 +1,3 @@
-#!/bin/bash
-
-# === Configuration Variables ===
-# File paths for Zabbix configuration
-CONFIG_FILE_FRONTEND="/etc/zabbix/nginx.conf"
-CONFIG_FILE_DATABASE="/etc/zabbix/zabbix_server.conf"
-
-# Zabbix server listening port (default: 80, change to 443 for HTTPS)
-LISTEN_PORT="80"
-
-# Log file for error tracking
-LOG_FILE="/var/log/zabbix_install.log" 
-
-# Supported Ubuntu versions for this script
-ALLOWED_VERSIONS=("18.04" "20.04" "22.04" "24.04")
-
-# === Helper Functions ===
-log_and_exit() {
-    local message="$1"
-    echo "$(date) - ❌ Error: $message" >> "$LOG_FILE" 
-    echo "❌ Error: $message"
-    exit 1
-}
 # === Function for Zabbix Database Setup ===
 setup_database() {
     echo "🔃 Setting up Zabbix database..."
