@@ -3,8 +3,8 @@
 # Database configuration
 ZABBIX_DB_NAME="zabbix"
 ZABBIX_USER="zabbix"
-ZABBIX_PASSWORD=$(openssl rand -base64 12)  # Generate a strong, random password
-MYSQL_ROOT_PASSWORD="qweQWE123!@#" # Enter your root password here (or leave blank for prompt)
+ZABBIX_PASSWORD="qweQWE123!@#"  # Generate a strong, random password
+MYSQL_ROOT_PASSWORD="1" # Enter your root password here (or leave blank for prompt)
 
 # Create the database
 echo "Creating Zabbix database..."

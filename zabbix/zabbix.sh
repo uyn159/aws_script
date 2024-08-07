@@ -1,14 +1,25 @@
 #!/bin/bash
 
 # === Configuration Variables ===
+# File paths for Zabbix configuration
 CONFIG_FILE_FRONTEND="/etc/zabbix/nginx.conf"
 CONFIG_FILE_DATABASE="/etc/zabbix/zabbix_server.conf"
-LISTEN_PORT="80"          # Or 443 if using HTTPS
+
+# Zabbix server listening port (default: 80, change to 443 for HTTPS)
+LISTEN_PORT="80"          
+
+# Generate a random password for the Zabbix database user
 NEW_PASSWORD=$(openssl rand -base64 12)
+
+# Zabbix database credentials
 ZABBIX_USER="zabbix"
 ZABBIX_DB_NAME="zabbix"
-LOG_FILE="/var/log/zabbix_install.log" # Log file for error tracking
 
+# Log file for error tracking
+LOG_FILE="/var/log/zabbix_install.log" 
+
+# Supported Ubuntu versions for this script
+ALLOWED_VERSIONS=("18.04" "20.04" "22.04" "24.04")
 # === Helper Functions ===
 log_and_exit() {
     local message="$1"
@@ -16,9 +27,38 @@ log_and_exit() {
     echo "❌ Error: $message"
     exit 1
 }
+#1 === Check Operating System Version ===
+
+echo "🔃 Checking Ubuntu version..."
+
+# Check if lsb_release is available
+if command -v lsb_release &> /dev/null; then
+    os_info=$(lsb_release -rs)   
+
+elif [ -f /etc/os-release ]; then  # If lsb_release is not available, try /etc/os-release
+    os_info=$(grep -oP 'VERSION_ID="\K[^"]+' /etc/os-release)
+else
+    log_and_exit "Unable to determine Ubuntu version."  
+fi
+
+# Extract version number (assuming format like "22.04" or "20.04.6")
+OS_VERSION=$(echo "$os_info" | grep -oE '[0-9]+\.[0-9]+')
+
+# Validate extracted version
+if [ -z "$OS_VERSION" ]; then
+    log_and_exit "Unable to determine Ubuntu version." 
+fi
+
+# Check if the version is in the allowed list
+if [[ ! ${ALLOWED_VERSIONS[*]} =~ ${OS_VERSION} ]]; then
+    log_and_exit "This script only supports Ubuntu versions ${ALLOWED_VERSIONS[*]}. Your current version is: $OS_VERSION"
+fi
+
+# === Version Validation Passed ===
+echo "✅ Ubuntu version is supported ($OS_VERSION). Continuing with script..."
 
 # === Zabbix Version Selection and Validation ===
-read -p "Enter Zabbix version (6.0, 6.4, or 7.0): " ZABBIX_VERSION
+read -rp "Enter Zabbix version (6.0, 6.4, or 7.0): " ZABBIX_VERSION
 
 if ! [[ "$ZABBIX_VERSION" =~ ^(6.0|6|6.4|7.0|7)$ ]]; then
     log_and_exit "Invalid version. Please retype."
@@ -37,19 +77,19 @@ esac
 echo "✅ Selected Zabbix version: $ZABBIX_VERSION"
 
 # === Server Public IP Detection ===
-# echo "🔃 Detecting server's public IP address..."
-# IP_ADDRESS=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ident.me)
-# echo "✅ Public IP Address is $IP_ADDRESS"
-# SERVER_NAME="$IP_ADDRESS" #get IP address of server
-read -p "Enter IP or DNS server: " SERVER_NAME
-
+echo "🔃 Detecting server's public IP address..."
+IP_ADDRESS=$(curl -s ifconfig.me || curl -s icanhazip.com || curl -s ident.me)
+echo "✅ Public IP Address is $IP_ADDRESS"
+SERVER_NAME="$IP_ADDRESS" #get IP address of server
+# read -p "Enter IP or DNS server: " SERVER_NAME
 
 # === Download and Install Zabbix Release Package ===
 echo "🔃 Downloading and installing Zabbix release package..."
-wget -q "https://repo.zabbix.com/zabbix/$ZABBIX_VERSION/ubuntu/pool/main/z/zabbix-release/zabbix-release_$VERSION+ubuntu24.04_all.deb" || log_and_exit "❌ Error downloading Zabbix release package"
-dpkg -i "zabbix-release_$VERSION+ubuntu24.04_all.deb" || log_and_exit "❌ Failed to install Zabbix release package"
+wget -q "https://repo.zabbix.com/zabbix/$ZABBIX_VERSION/ubuntu/pool/main/z/zabbix-release/zabbix-release_$VERSION+ubuntu""$OS_VERSION""_all.deb" || log_and_exit "❌ Error downloading Zabbix release package"
+
+dpkg -i "zabbix-release_$VERSION+ubuntu""$OS_VERSION""_all.deb" || log_and_exit "❌ Failed to install Zabbix release package"
 apt update
-rm -rf "zabbix-release_$VERSION+ubuntu24.04_all.deb"
+rm -rf "zabbix-release_$VERSION+ubuntu""$OS_VERSION""_all.deb"
 # === Zabbix and PostgreSQL Package Installation ===
 echo "🔃 Checking and installing required packages..."
 packages=(zabbix-server-pgsql zabbix-frontend-php php8.3-pgsql zabbix-nginx-conf zabbix-sql-scripts zabbix-agent postgresql postgresql-contrib)
@@ -98,8 +138,8 @@ fi
 # echo "🔃 Restarting PostgreSQL..."
 # sudo systemctl restart postgresql 
 echo "🔃 Configuring Zabbix server..."
-sed -i "s/^DBPassword=.*/DBPassword=$NEW_PASSWORD/" "$CONFIG_FILE_DATABASE" || log_and_exit "Failed to set the database password in $CONFIG_FILE_DATABASE"
-
+# sed -i "s/^DBPassword=.*/DBPassword=$NEW_PASSWORD/" "$CONFIG_FILE_DATABASE" || log_and_exit "Failed to set the database password in $CONFIG_FILE_DATABASE"
+sed -i "s@^DBPassword=.*@DBPassword=$NEW_PASSWORD@" "$CONFIG_FILE_DATABASE" || log_and_exit "Failed to set the database password in $CONFIG_FILE_DATABASE"
 
 # === Zabbix Frontend Configuration ===
 echo "🔃 Configuring Zabbix frontend (Nginx)..."
