@@ -74,5 +74,6 @@ if command -v netstat &> /dev/null; then
     echo "  netstat -rn"
 
 else
-    echo "❌ netstat is not installed. You can install it with 'sudo apt install net-tools'"
+    echo "Install net-tools."
+    apt install net-tools
 fi
