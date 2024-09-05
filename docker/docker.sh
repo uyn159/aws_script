@@ -76,6 +76,6 @@ fi
 
 # Fix Docker daemon socket permissions (if needed)
 if [[ ! -w /var/run/docker.sock ]]; then
-    sudo chmod 666 /var/run/docker.sockd
+    sudo chmod 666 /var/run/docker.sock
     echo "✅ Docker daemon socket permissions fixed."
 fi
