@@ -76,4 +76,5 @@ if command -v netstat &> /dev/null; then
 else
     echo "Install net-tools."
     apt install net-tools
+    echo "✅ netstat is installed."
 fi
