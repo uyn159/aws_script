@@ -36,9 +36,9 @@ read answer
 case $answer in
   [Yy]* )
     # Prompt for new information
-    echo -n "Enter new Git user name: "
+    echo -n "Enter new Git user name(example:"uynle"): "
     read new_name
-    echo -n "Enter new Git user email: "
+    echo -n "Enter new Git user email(example:"uynle...@gmail.com"): "
     read new_email
 
     # Set new configuration
@@ -56,25 +56,25 @@ case $answer in
 esac
 
 
-# Check for netstat
-echo "🔃 Checking for netstat installation..."
-if command -v netstat &> /dev/null; then
-    echo "✅ netstat is installed."
+# # Check for netstat
+# echo "🔃 Checking for netstat installation..."
+# if command -v netstat &> /dev/null; then
+#     echo "✅ netstat is installed."
 
-    # Popular netstat Commands
-    echo -e "\nHere are some popular netstat commands:"
-    echo "-----------------------------------------"
-    echo "- List all active connections:"
-    echo "  sudo netstat -tulpn"
-    echo "- List listening ports:"
-    echo "  sudo netstat -ltunp"
-    echo "- Show statistics for network protocols:"
-    echo "  netstat -s"
-    echo "- Display routing table:"
-    echo "  netstat -rn"
+#     # Popular netstat Commands
+#     echo -e "\nHere are some popular netstat commands:"
+#     echo "-----------------------------------------"
+#     echo "- List all active connections:"
+#     echo "  sudo netstat -tulpn"
+#     echo "- List listening ports:"
+#     echo "  sudo netstat -ltunp"
+#     echo "- Show statistics for network protocols:"
+#     echo "  netstat -s"
+#     echo "- Display routing table:"
+#     echo "  netstat -rn"
 
-else
-    echo "Install net-tools."
-    apt install net-tools
-    echo "✅ netstat is installed."
-fi
+# else
+#     echo "Install net-tools."
+#     apt install net-tools
+#     echo "✅ netstat is installed."
+# fi
