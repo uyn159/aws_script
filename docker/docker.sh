@@ -36,10 +36,6 @@ apt-get update
 # Install Docker CE
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-echo "✅ Docker installation complete!"
-
-#!/bin/bash
-
 # Check if Docker Compose is already installed
 if command -v docker-compose &> /dev/null; then
     echo "✅ Docker Compose is already installed."
